@@ -23,6 +23,54 @@ CARD_TYPES = [
     CARD_TYPE_JCB,
 ]
 
+CREDIT_CARD = 'CC'
+PINLESS_DEBIT = 'DP'
+ELECTRONIC_CHECK = 'EC'
+EUROPEAN_DIRECT_DEPOSIT = 'ED'
+INTERNATIONAL_MAESTRO = 'IM'
+CHASENET_CREDIT_CARD = 'CZ'
+CHASENET_SIGNATURE_DEBIT = 'CR'
+AUTO_ASSIGN = 'AA'
+CUSTOMER_ACCOUNT_TYPES = [
+    CREDIT_CARD,
+    PINLESS_DEBIT,
+    ELECTRONIC_CHECK,
+    EUROPEAN_DIRECT_DEPOSIT,
+    INTERNATIONAL_MAESTRO,
+    CHASENET_CREDIT_CARD,
+    CHASENET_SIGNATURE_DEBIT,
+    AUTO_ASSIGN,
+]
+
+CUSTOMER_CHECKING = 'C'
+CUSTOMER_SAVINGS = 'S'
+COMMERCIAL_CHECKING = 'X'
+BANK_ACCOUNT_TYPES = [
+    CUSTOMER_CHECKING,
+    CUSTOMER_SAVINGS,
+    COMMERCIAL_CHECKING,
+]
+
+WRITTEN = 'W'
+INTERNET = 'I'
+TELEPHONE = 'T'
+ACCOUNTS_RECIEVABLE = 'A'
+POINT_OF_PURCHASE = 'P'
+ECP_AUTH_METHOD = [
+    WRITTEN,
+    INTERNET,
+    TELEPHONE,
+    ACCOUNTS_RECIEVABLE,
+    POINT_OF_PURCHASE,
+]
+
+BEST_POSSIBLE = 'B'
+ACH = 'A'
+BANK_PAYMENT_DELIVERY_METHODS = [
+    BEST_POSSIBLE,
+    ACH,
+]
+
 TEST_ENDPOINT_URL_1 = "https://orbitalvar1.chasepaymentech.com"
 TEST_ENDPOINT_URL_2 = "https://orbitalvar2.chasepaymentech.com"
 ENDPOINT_URL_1 = "https://orbital1.chasepaymentech.com"
@@ -203,6 +251,7 @@ class Profile(Endpoint):
     def __init__(self, **kwargs):
         super(Profile, self).__init__(**kwargs)
         self.ident = kwargs.get('ident')
+        self.account_type = kwargs.get('account_type')
         self.name = kwargs.get('name')
         self.address1 = kwargs.get('address1')
         self.address2 = kwargs.get('address2')
@@ -213,6 +262,10 @@ class Profile(Endpoint):
         self.phone = kwargs.get('phone')
         self.cc_num = kwargs.get('cc_num')
         self.cc_expiry = kwargs.get('cc_expiry')
+        self.bank_account_number = kwargs.get('bank_account_number')
+        self.bank_account_type = kwargs.get('bank_account_type')
+        self.bank_routing_number = kwargs.get('bank_routing_number')
+        self.bank_payment_delivery_method = kwargs.get('bank_payment_delivery_method')
         self.xml = None
 
     def sanitize(self):
@@ -250,6 +303,7 @@ class Profile(Endpoint):
         self.sanitize()
         values = {
             'CustomerMerchantID': self.merchant_id,
+            'CustomerAccountType': self.account_type,
             'CustomerName': self.name,
             'CustomerAddress1': self.address1,
             'CustomerAddress2': self.address2,
@@ -260,12 +314,16 @@ class Profile(Endpoint):
             'CustomerPhone': self.phone,
             'CCAccountNum': self.cc_num,
             'CCExpireDate': self.cc_expiry,
+            'ECPAccountDDA': self.bank_account_number,
+            'ECPAccountType': self.bank_account_type,
+            'ECPAccountRT': self.bank_routing_number,
+            'ECPBankPmtDlv': self.bank_payment_delivery_method,
         }
         if self.ident:
             values['CustomerProfileFromOrderInd'] = 'S'
             values['CustomerRefNum'] = self.ident
         self.xml = self.parse_xml(
-            "profile_create.xml",
+            "profile_create_echeck.xml",
             values,
             default_value="")
         self.result = self.make_request(self.xml)
@@ -284,6 +342,7 @@ class Profile(Endpoint):
         self.sanitize()
         values = {
             'CustomerMerchantID': self.merchant_id,
+            'CustomerAccountType': self.account_type,
             'CustomerRefNum': self.ident,
             'CustomerName': self.name,
             'CustomerAddress1': self.address1,
@@ -295,6 +354,10 @@ class Profile(Endpoint):
             'CustomerPhone': self.phone,
             'CCAccountNum': self.cc_num,
             'CCExpireDate': self.cc_expiry,
+            'ECPAccountDDA': self.bank_account_number,
+            'ECPAccountType': self.bank_account_type,
+            'ECPAccountRT': self.bank_routing_number,
+            'ECPBankPmtDlv': self.bank_payment_delivery_method,
         }
         self.xml = self.parse_xml("profile_update.xml", values)
         self._result = self.make_request(self.xml)
@@ -325,7 +388,7 @@ class Order(Endpoint):
         self.cc_num = kwargs.get('cc_num')  # <AccountNum>
         self.cc_expiry = kwargs.get('cc_expiry')  # <Exp>
         self.cvv_indicator = kwargs.get('cvv_indicator') or \
-            kwargs.get('cvd_indicator')  # <CardSecValInd>
+                             kwargs.get('cvd_indicator')  # <CardSecValInd>
         self.cvv = kwargs.get('cvv') or kwargs.get('cvd')  # <CardSecVal>
         self.customer_num = kwargs.get('customer_num')  # <CustomerRefNum>
         self.order_id = kwargs.get('order_id')  # <OrderID>

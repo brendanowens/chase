@@ -6,6 +6,7 @@ merchant_id = os.environ.get('TEST_ORBITAL_MERCHANT_ID')
 username = os.environ.get('TEST_ORBITAL_USERNAME')
 password = os.environ.get('TEST_ORBITAL_PASSWORD')
 
+
 def new_profile():
     profile = Profile(
         merchant_id=merchant_id,
@@ -42,7 +43,6 @@ def new_reversal():
 
 
 class TestProfileFunctions(unittest.TestCase):
-
     def assert_default_fields(self, result):
         self.assertEqual(result['ProfileProcStatus'], '0')
         self.assertEqual(result['CustomerName'], 'Test User')
@@ -103,8 +103,8 @@ class TestProfileFunctions(unittest.TestCase):
         self.assertEqual(result['ProfileProcStatus'], '0')
         self.assertEqual(result['CustomerRefNum'], ident)
 
-class TestOrderFunctions(unittest.TestCase):
 
+class TestOrderFunctions(unittest.TestCase):
     def test_profile_order(self):
         self.profile = new_profile()
         result = self.profile.create()
@@ -150,6 +150,7 @@ class TestOrderFunctions(unittest.TestCase):
         refund.order_id = '100001'
         result = refund.void()
         self.assertEqual(result['ProcStatus'], '0')
+
 
 if __name__ == '__main__':
     unittest.main()
